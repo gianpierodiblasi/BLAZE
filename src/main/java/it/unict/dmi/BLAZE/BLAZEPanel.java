@@ -11,6 +11,7 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.File;
@@ -58,12 +59,11 @@ public class BLAZEPanel extends JPanel {
   private JRadioButton jRadioButton8 = new JRadioButton();
   private JRadioButton jRadioButton12 = new JRadioButton();
 
-  private final static String[] filters = {"Nearest Neighbor", "Bilinear", "Bicubic", "Bicubic2", "BLAZE"};
-  private int type1, type2;
+  private final static String[] filters = {"Nearest Neighbor", "Bilinear", "Bicubic", "BLAZE"};
+  private int type1 = 1, type2 = 1;
   private int oldType1 = -1, oldType2 = -1;
   private float zoom = 1.0F;
   private boolean zoomChanged = false;
-  private File imageFile;
   private BufferedImage image;
 
   @SuppressWarnings("CallToPrintStackTrace")
@@ -101,27 +101,6 @@ public class BLAZEPanel extends JPanel {
     }
   }
 
-//  private RenderedOp makeZoom(File file, int interpolationType, float zoom)
-//  {
-//    FileSeekableStream stream=null;
-//    try {stream=new FileSeekableStream(file);} catch (IOException e) {}
-//
-//    RenderedOp image1=JAI.create("stream",stream);
-//    float zoomW=zoom-(zoom-1)/image1.getWidth();
-//    float zoomH=zoom-(zoom-1)/image1.getHeight();
-//
-//    Interpolation interp=Interpolation.getInstance(interpolationType);
-//    ParameterBlock params=new ParameterBlock();
-//    params.addSource(image1);
-//    params.add(zoomW);
-//    params.add(zoomH);
-//    params.add(0.0F);
-//    params.add(0.0F);
-//    params.add(interp);
-//
-//    RenderingHints hint=new RenderingHints(JAI.KEY_BORDER_EXTENDER,BorderExtender.createInstance(BorderExtender.BORDER_COPY));
-//    return JAI.create("scale",params,hint);
-//  }
   private void setComponentEnabled(boolean b1, boolean b2) {
     jComboBox1.setEnabled(b1);
     jComboBox2.setEnabled(b1);
@@ -229,23 +208,10 @@ public class BLAZEPanel extends JPanel {
     public void actionPerformed(ActionEvent e) {
       Object source = e.getSource();
       if (source instanceof JComboBox) {
-        int index = ((JComboBox) source).getSelectedIndex();
-        int t = -1;
-        if (index == 0) {
-//          t = Interpolation.INTERP_NEAREST;
-        } else if (index == 1) {
-//          t = Interpolation.INTERP_BILINEAR;
-        } else if (index == 2) {
-//          t = Interpolation.INTERP_BICUBIC;
-        } else if (index == 3) {
-//          t = Interpolation.INTERP_BICUBIC_2;
-        } else if (index == 4) {
-          t = 4;
-        }
         if (source == jComboBox1) {
-          type1 = t;
+          type1 = ((JComboBox) source).getSelectedIndex() + 1;
         } else if (source == jComboBox2) {
-          type2 = t;
+          type2 = ((JComboBox) source).getSelectedIndex() + 1;
         }
       } else if (source instanceof JRadioButton) {
         if (jRadioButton1.isSelected()) {
@@ -266,7 +232,6 @@ public class BLAZEPanel extends JPanel {
         int risposta = openChooser.showOpenDialog(BLAZEPanel.this);
         if (risposta == JFileChooser.APPROVE_OPTION)
           try {
-          imageFile = openChooser.getSelectedFile();
           BufferedImage buff = ImageIO.read(openChooser.getSelectedFile());
           int w = buff.getWidth();
           int h = buff.getHeight();
@@ -298,26 +263,25 @@ public class BLAZEPanel extends JPanel {
 
             if (oldType1 != type1 || zoomChanged) {
               if (type1 != 4) {
-//                pannello1.setImage(makeZoom(imageFile, type1, zoom));
+                pannello1.setImage(new AffineTransformOp(AffineTransform.getScaleInstance(zoom, zoom), type1).filter(image, null));
+              } else if (zoom != 1) {
+                pannello1.setImage(new BLAZE(image, (int) zoom).makeZoom());
               } else {
-                if (zoom != 1) {
-                  pannello1.setImage(new BLAZE(image, (int) zoom).makeZoom());
-                } else {
-                  pannello1.setImage(image);
-                }
+                pannello1.setImage(image);
               }
+
               oldType1 = type1;
             }
+
             if (oldType2 != type2 || zoomChanged) {
               if (type2 != 4) {
-//                pannello2.setImage(makeZoom(imageFile, type2, zoom));
+                pannello2.setImage(new AffineTransformOp(AffineTransform.getScaleInstance(zoom, zoom), type2).filter(image, null));
+              } else if (zoom != 1) {
+                pannello2.setImage(new BLAZE(image, (int) zoom).makeZoom());
               } else {
-                if (zoom != 1) {
-                  pannello2.setImage(new BLAZE(image, (int) zoom).makeZoom());
-                } else {
-                  pannello2.setImage(image);
-                }
+                pannello2.setImage(image);
               }
+
               oldType2 = type2;
             }
             zoomChanged = false;
