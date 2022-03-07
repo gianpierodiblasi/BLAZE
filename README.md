@@ -6,10 +6,6 @@ A bilinear LAZA algorithm for zooming enhancement.
 
 A method, called BLAZE, that takes into account information about discontinuities or sharp luminance variations while zooming an image is provided.
 
-## Dependencies
-
-- ComputerGraphicsUtility - [link](https://github.com/gianpierodiblasi/ComputerGraphicsUtility)
-
 ## References
 
 - my papers - [link](https://sites.google.com/view/gianpierodiblasi/pubblicazioni)
